@@ -1,93 +1,288 @@
 # AI E-Commerce Customer Support Agent
 
-An agentic AI customer support system for e-commerce. Instead of a rule-based
-FAQ bot, this project uses Claude's tool-calling ability to let the model
-**reason about a customer's request, retrieve grounded policy information,
-and take real backend actions** (order lookup, return initiation, inventory
-checks, human escalation) autonomously.
+An agentic AI customer support system for e-commerce. This project uses an AI agent to understand customer requests, retrieve relevant policy information, and perform backend actions such as order lookup, return initiation, inventory checks, and human escalation.
+
+## Features
+
+- AI-powered customer support
+- Order status lookup
+- Return and refund assistance
+- Product and policy questions
+- Inventory availability checking
+- Human agent escalation
+- Retrieval-Augmented Generation (RAG)
+- Conversational memory
+- FastAPI backend
+- HTML, CSS and JavaScript frontend
+- Ollama support for local AI
+- Automated testing
+
+## Project Structure
+
+```text
+ai-ecommerce-support-agent/
+│
+├── backend/
+│   ├── data/
+│   │   ├── knowledge_base/
+│   │   │   ├── faq.md
+│   │   │   ├── return_policy.md
+│   │   │   └── shipping_policy.md
+│   │   ├── inventory.json
+│   │   └── orders.json
+│   │
+│   ├── agent_ollama.py
+│   ├── agent.py
+│   ├── main.py
+│   ├── models.py
+│   ├── rag.py
+│   ├── tools.py
+│   └── requirements.txt
+│
+├── frontend/
+│   ├── chat.js
+│   ├── index.html
+│   └── style.css
+│
+├── tests/
+│   └── test_agent.py
+│
+├── .env.example
+├── .gitignore
+└── README.md
+```
 
 ## Architecture
 
-```
-frontend/            Static chat widget (HTML/CSS/JS) — talks to the API
-backend/
-  main.py            FastAPI app — /chat and /reset endpoints
-  agent.py           Agent core: Claude tool-calling loop + session memory
-  tools.py           Tool implementations + JSON-schema tool definitions
-  rag.py             Lightweight TF-IDF retrieval over the knowledge base
-  data/
-    orders.json          Mock order database
-    inventory.json       Mock product/stock database
-    knowledge_base/       Return/shipping policy + FAQ markdown docs (RAG source)
-tests/
-  test_agent.py       Unit tests for tools + RAG (no API key needed)
+```text
+Customer
+    ↓
+Frontend Chat Interface
+    ↓
+FastAPI Backend
+    ↓
+AI Agent
+    ↓
+┌─────────────────────────┐
+│      AI Reasoning       │
+└─────────────────────────┘
+    ↓
+┌────────────┬────────────┐
+│    RAG     │   Tools    │
+│            │            │
+│ FAQ        │ Order      │
+│ Policies   │ Return     │
+│ Knowledge  │ Inventory  │
+└────────────┴────────────┘
+    ↓
+AI Response
+    ↓
+Customer
 ```
 
-**Flow per message:** Perceive (user message) → Reason (Claude decides which
-tool(s) to call) → Retrieve (RAG over policy docs) / Act (call order,
-return, or inventory tools) → Respond, or Escalate to a human ticket if the
-agent can't resolve it confidently.
+## Technologies Used
+
+- Python
+- FastAPI
+- Ollama
+- Large Language Model (LLM)
+- Retrieval-Augmented Generation (RAG)
+- TF-IDF
+- HTML
+- CSS
+- JavaScript
+- JSON
+- Pytest
 
 ## Prerequisites
 
-- Python 3.10+
-- An [Anthropic API key](https://console.anthropic.com/)
+Install the following:
+
+- Python 3.10 or higher
+- Ollama
+- Git
+- VS Code
+
+## Install Ollama
+
+Download and install Ollama:
+
+https://ollama.com
+
+Check the installation:
+
+```bash
+ollama --version
+```
+
+Start Ollama:
+
+```bash
+ollama serve
+```
+
+Open another terminal and download the AI model:
+
+```bash
+ollama pull llama3.1
+```
 
 ## Setup
 
+Clone the repository:
+
 ```bash
-git clone <your-repo-url>
-cd ai-ecommerce-support-agent
-
-# 1. Configure your API key
-cp .env.example backend/.env
-# edit backend/.env and paste your ANTHROPIC_API_KEY
-
-# 2. Install backend dependencies
-cd backend
-python -m venv venv
-source venv/bin/activate        # Windows: venv\Scripts\activate
-pip install -r requirements.txt
-
-# 3. Run the API server
-python main.py
-# Server runs at http://localhost:8000
+git clone https://github.com/YOUR-USERNAME/ai-ecommerce-support-agent.git
 ```
 
-## Run the frontend
+Go to the project folder:
 
-The frontend is static — no build step required. In a separate terminal:
+```bash
+cd ai-ecommerce-support-agent
+```
+
+## Configure Environment
+
+Create the environment file.
+
+### Windows
+
+```powershell
+Copy-Item .env.example backend\.env
+```
+
+Open:
+
+```text
+backend/.env
+```
+
+Add:
+
+```env
+LLM_PROVIDER=ollama
+OLLAMA_MODEL=llama3.1
+```
+
+## Create Virtual Environment
+
+Go to the backend:
+
+```bash
+cd backend
+```
+
+Create a virtual environment:
+
+```bash
+python -m venv venv
+```
+
+### Windows
+
+```powershell
+venv\Scripts\activate
+```
+
+### Mac/Linux
+
+```bash
+source venv/bin/activate
+```
+
+Install the dependencies:
+
+```bash
+pip install -r requirements.txt
+```
+
+## Run the Backend
+
+From the `backend` folder:
+
+```bash
+python main.py
+```
+
+The backend server will run at:
+
+```text
+http://localhost:8000
+```
+
+Health check:
+
+```text
+http://localhost:8000/health
+```
+
+FastAPI documentation:
+
+```text
+http://localhost:8000/docs
+```
+
+## Run the Frontend
+
+Open a second terminal.
+
+Go to the frontend folder:
 
 ```bash
 cd frontend
-python -m http.server 5500
-# Open http://localhost:5500 in your browser
 ```
 
-## Try it
-
-Example things to type into the chat widget:
-
-- "Where is my order ORD-10234?"
-- "I want to return order ORD-10236, the pan set arrived scratched."
-- "Is the Smart Fitness Watch in stock?"
-- "What's your return policy?"
-- "I want to speak to a human agent."
-
-## Running tests
+Start the frontend server:
 
 ```bash
-cd backend
-pip install pytest
-pytest ../tests/
+python -m http.server 5500
 ```
 
-These tests exercise the tools and RAG retrieval directly and don't require
-an API key.
+Open the application:
+
+```text
+http://localhost:5500
+```
+
+## Example Queries
+
+Try these questions in the chat:
+
+```text
+Where is my order ORD-10234?
+```
+
+```text
+I want to return order ORD-10236 because the pan set arrived scratched.
+```
+
+```text
+Is the Smart Fitness Watch in stock?
+```
+
+```text
+What is your return policy?
+```
+
+```text
+I want to speak to a human agent.
+```
+
+## Knowledge Base
+
+The RAG system uses the following knowledge-base documents:
+
+- `faq.md`
+- `return_policy.md`
+- `shipping_policy.md`
+
+These documents contain store policies and customer support information.
 
 ## API
 
-### `POST /chat`
+### POST /chat
+
+Example request:
 
 ```json
 {
@@ -96,159 +291,91 @@ an API key.
 }
 ```
 
-Response:
+Example response:
 
 ```json
 {
   "session_id": "abc-123",
-  "reply": "Your order ORD-10234 has shipped via BlueDart...",
+  "reply": "Your order ORD-10234 has shipped via BlueDart.",
   "escalated": false,
-  "tool_calls": [{ "tool_name": "get_order_status", "tool_input": { "order_id": "ORD-10234" } }]
+  "tool_calls": [
+    {
+      "tool_name": "get_order_status",
+      "tool_input": {
+        "order_id": "ORD-10234"
+      }
+    }
+  ]
 }
 ```
 
-### `POST /reset`
+### POST /reset
 
-Clears a session's conversation memory.
+Clears the conversation memory for a session.
 
-## Notes on production hardening
+## Running Tests
 
-This is a reference/demo implementation. Before deploying to production:
+From the backend folder:
 
-- Replace the JSON files in `backend/data/` with real order/inventory/ticketing
-  system integrations (REST/GraphQL calls, not local file reads).
-- Replace the TF-IDF `KnowledgeBase` in `rag.py` with a real embeddings model
-  and a vector database (e.g. Pinecone, Chroma, pgvector) for better recall
-  at scale.
-- Replace in-memory session storage in `agent.py` with Redis or a database,
-  and add authentication so `session_id` can't be spoofed.
-- Add rate limiting, logging/observability, and PII redaction before logging
-  conversations.
-- Add a real ticketing system integration (Zendesk, Freshdesk, etc.) in place
-  of `tickets.json` for `escalate_to_human`.
+```bash
+pip install pytest
+pytest ../tests/
+```
+
+The tests cover the tools and RAG functionality.
+
+## Customer Support Scenarios
+
+### Order Tracking
+
+The customer provides an order ID and the AI agent retrieves the order status from the order database.
+
+### Return Request
+
+The agent processes a customer's return request using the return functionality.
+
+### Inventory Check
+
+The agent checks the inventory database to determine whether a product is available.
+
+### Policy Question
+
+The RAG system retrieves relevant information from the knowledge base before generating a response.
+
+### Human Escalation
+
+Complex or sensitive requests can be escalated to a human support agent.
+
+## Future Improvements
+
+- Voice-based customer support
+- Multilingual support
+- WhatsApp integration
+- Real-time shipment tracking
+- Personalized customer responses
+- Real payment and refund integration
+- Production vector database
+- Redis-based conversation memory
+- Analytics dashboard
+- Proactive delivery notifications
+
+## Security
+
+This project is intended for learning and demonstration purposes.
+
+Before production deployment:
+
+- Add authentication
+- Protect customer information
+- Add rate limiting
+- Add logging and monitoring
+- Use a production database
+- Replace mock JSON databases with real APIs
+- Add proper ticketing system integration
+- Protect API keys and environment variables
 
 ## License
 
-MIT — use freely for learning or as a starting point for your own project.
+MIT License
 
----
-
-## VS Code + Ollama la run panni, GitHub-ku push panna Guide (Tanglish)
-
-Idhu step-by-step guide — VS Code la open panni, **Ollama (local LLM, free, no API
-key)** use panni run panniddu, appuram GitHub repo-ku push panradhu eppadi nu.
-
-### Step 1 — Ollama install pannunga
-
-1. https://ollama.com ku poi, un OS (Windows/Mac/Linux) ku ஏத்த installer download panni run pannunga.
-2. Install aana apparam, terminal la இதை run pannunga, server start aagum:
-   ```bash
-   ollama serve
-   ```
-   (Mac/Windows la ithu background la automatic aa already run aayirukum — separate terminal open pannitu run panna check pannunga.)
-3. Vera oru terminal la, tool-calling support panra model ஒண்ணு pull pannunga:
-   ```bash
-   ollama pull llama3.1
-   ```
-   (Idhu ~4.7GB download aagum. Konjam weak system na `ollama pull qwen2.5:7b` nu smaller model try pannunga.)
-
-### Step 2 — Project-ah VS Code la open pannunga
-
-1. Zip-ah extract pannunga, appram VS Code open pannitu **File → Open Folder** → `ai-ecommerce-support-agent` folder select pannunga.
-2. VS Code la **Python extension** (Microsoft official) install pannunga, illa na irundha — Extensions tab (Ctrl+Shift+X) la "Python" search pannunga.
-3. VS Code Terminal open pannunga: **Terminal → New Terminal** (or `` Ctrl+` ``).
-
-### Step 3 — `.env` file setup (Ollama mode ku switch pannunga)
-
-VS Code terminal la:
-
-```bash
-cp .env.example backend/.env
-```
-
-Appuram `backend/.env` file-ah VS Code la open panni (left sidebar la double-click), idha maathunga:
-
-```
-LLM_PROVIDER=ollama
-OLLAMA_MODEL=llama3.1
-```
-
-(`ANTHROPIC_API_KEY` line-ah touch pannaadheenga — Ollama mode use pannumbodhu adhu vேண்டாம், unmodified irundhalum problem illa.)
-
-### Step 4 — Python virtual environment + dependencies
-
-VS Code terminal la (backend folder ku poganum):
-
-```bash
-cd backend
-python -m venv venv
-```
-
-Terminal-ah activate pannunga:
-- **Windows:** `venv\Scripts\activate`
-- **Mac/Linux:** `source venv/bin/activate`
-
-Activate aana apparam terminal prompt front la `(venv)` nu varum. Appuram:
-
-```bash
-pip install -r requirements.txt
-```
-
-VS Code oru popup kaatum "Select interpreter" nu — antha `venv` folder interpreter-ah select pannunga (bottom-right corner la kuda click panni select pannalaam).
-
-### Step 5 — Server run pannunga
-
-Same terminal la (venv activate aana state la):
-
-```bash
-python main.py
-```
-
-Idhu output la `Uvicorn running on http://0.0.0.0:8000` nu varum. Adhukku apparam
-browser la `http://localhost:8000/health` open pannitu check pannunga — response la
-`"llm_provider": "ollama"` nu kaatanum.
-
-> **VS Code shortcut:** Run/Debug ku F5 kuda use pannalam — `backend/main.py` file open pannitu F5 press pannunga, VS Code automatic aa run pannidum (`launch.json` venum na kekungo).
-
-### Step 6 — Frontend run pannunga
-
-VS Code la **oru puthu terminal split pannunga** (terminal panel top-right la "+" button):
-
-```bash
-cd frontend
-python -m http.server 5500
-```
-
-Browser la `http://localhost:5500` open pannunga — chat widget varum. "Where is my
-order ORD-10234?" nu type pannitu try pannunga — Ollama local model-ah use panni
-agent reply pannum, tool calls (order lookup etc.) console la `tool-tag` aa kaatum.
-
-**Note:** Local models (especially chinna size ones) tool-calling la Claude/GPT
-mathiri consistent aa irukaadhu sila times — model correct-ah tool call panala na,
-`llama3.1` ku badhilaa `qwen2.5:14b` mathiri periya model try pannunga (`ollama pull
-qwen2.5:14b`), adhu tool-calling la better perform pannum.
-
-### Step 7 — GitHub-ku push pannunga (VS Code UI use panni)
-
-1. VS Code left sidebar la **Source Control icon** (branch icon, 3rd from top) click pannunga.
-2. "Initialize Repository" button irundha click pannunga (git init pannidum).
-3. `.gitignore` already `.env` ah ignore pannuduchu — so key/secret accidental aa push aagadhu, worry venaam.
-4. Changes list la irukra files ellaam "+" click panni stage pannunga (illa "Stage All Changes" button use pannunga).
-5. Top la commit message box la type pannunga: `Initial commit: AI e-commerce support agent`, appuram ✓ (Commit) click pannunga.
-6. Appuram **"Publish Branch"** button varum (or "..." menu → "Push") — adha click pannunga.
-7. VS Code GitHub login kekkum first time na — browser open aagi authorize pannachu solli, appuram repo name kekkum, type pannitu create pannunga (public/private select pannalam).
-
-Command line vaenumna:
-
-```bash
-git init
-git add .
-git commit -m "Initial commit: AI e-commerce support agent"
-git branch -M main
-git remote add origin https://github.com/<your-username>/ai-ecommerce-support-agent.git
-git push -u origin main
-```
-
-Ready! Ippo un repo GitHub la irukku, `LLM_PROVIDER=ollama` set panni free-ah local
-la run pannalam, or `LLM_PROVIDER=anthropic` set panni Claude API kooda use
-pannalam — code same-ah irukkum, `.env` la oru line maathradhu than vithyasam.
+This project is intended for learning, experimentation, and further development.
